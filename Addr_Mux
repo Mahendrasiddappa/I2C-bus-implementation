@@ -1,0 +1,33 @@
+module Addr_Mux(SCL,reset,selAddr,selAAAA,sel5555,WE_N,CE_N,OE_N,AddrRegOut,Addr);
+
+input wire SCL,reset,selAddr,selAAAA,sel5555,WE_N,CE_N,OE_N;
+input AddrRegOut;
+wire [15:0] AddrRegOut;
+
+output reg [15:0] Addr;
+
+parameter DataAAAA=16'hAAAA, Data5555=16'h5555;
+
+
+always @*//(negedge WE_N)
+begin: Addr_block
+//if(reset == 1) Addr = 16'b0;
+//else begin
+	if((!(WE_N == 0 && CE_N == 0)) && !(OE_N == 0 && CE_N == 0))disable Addr_block;
+
+	if(sel5555 == 1)Addr = Data5555;
+
+	if(selAAAA == 1)Addr = DataAAAA;
+
+	
+	end
+//end
+
+always @(*) begin
+if(selAddr == 1) 
+		Addr = AddrRegOut;
+end
+
+endmodule
+
+
