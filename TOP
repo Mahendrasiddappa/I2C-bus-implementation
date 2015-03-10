@@ -1,0 +1,50 @@
+module I2C_TOP(SCL,SDA,reset,SDAOut);
+
+input wire SCL,SDA,reset;
+
+output SDAOut;
+wire [7:0] DInDOut;
+
+wire selAddr,selAAAA,WE_N,CE_N,OE_N;
+wire selData,sel55,selB0,selC0,selD0,selE0,sel00;
+wire EnSDAOut,LoadDevID,sel5555,selAA,LoadAddLSB,LoadAddMSB,EnDataOut,EnDataIn,IncrAddr,write,read,LoadRW,LoadShift;
+wire [7:0] shiftRegOut, DeviceID, shiftRegIn,data_out;
+wire [15:0] Addr,AddrRegOut;
+wire shiftIn,shiftOut,START,STOP;
+
+
+
+
+
+flash f(._WE(WE_N),._CE(CE_N),._OE(OE_N),.addr(Addr),.data(DInDOut),.data_out(data_out));
+
+I2C_Controller I2C(.SCL(SCL),.SDA(SDA),.reset(reset),.EnSDAOut(EnSDAOut),.shiftIn(shiftIn),.shiftOut(shiftOut),
+.shiftRegOut(shiftRegOut),.LoadDevID(LoadDevID),.LoadAddLSB(LoadAddLSB),.LoadAddMSB(LoadAddMSB),.LoadShift(LoadShift),
+.sel5555(sel5555),.selAA(selAA),.WE_N(WE_N),.CE_N(CE_N),.OE_N(OE_N),.selAAAA(selAAAA),.sel55(sel55),.selB0(selB0),
+.selC0(selC0),.selD0(selD0),.selE0(selE0),.sel00(sel00),.selAddr(selAddr),.selData(selData),.EnDataOut(EnDataOut),.EnDataIn(EnDataIn),
+.IncrAddr(IncrAddr),.write(write),.read(read),.LoadRW(LoadRW),.selAux(selAux),.START(START),.STOP(STOP));
+
+
+
+ShiftReg SR(.SCL(SCL),.SDA(SDA),.OE_N(OE_N),.reset(reset),.SDAOut(SDAOut),.shiftIn(shiftIn),.shiftOut(shiftOut),.LoadRW(LoadRW),
+.LoadShift(LoadShift),.write(write),.read(read),.LoadDevID(LoadDevID),.LoadAddLSB(LoadAddLSB),.LoadAddMSB(LoadAddMSB),
+.shiftRegOut(shiftRegOut),.shiftRegIn(shiftRegIn),.START(START),.STOP(STOP));
+
+
+Addr_Mux Addr_Mux(.SCL(SCL),.selAddr(selAddr),.selAAAA(selAAAA),.sel5555(sel5555),.Addr(Addr),
+.WE_N(WE_N),.CE_N(CE_N),.OE_N(OE_N),.AddrRegOut(AddrRegOut));
+
+
+Data_Mux Data_Mux(.SCL(SCL),.selData(selData),.selAA(selAA),.sel55(sel55),.selB0(selB0),
+.selC0(selC0),.selD0(selD0),.selE0(selE0),.sel00(sel00),.shiftRegOut(shiftRegOut),.DInDOut(DInDOut),.WE_N(WE_N),.CE_N(CE_N),.OE_N(OE_N),
+.EnDataOut(EnDataOut),.selAddr(selAddr),.shiftRegIn(shiftRegIn),.data_out(data_out),.EnDataIn(EnDataIn));
+
+
+
+DeviceIDW D(.SCL(SCL),.LoadDevID(LoadDevID),.shiftRegOut(shiftRegOut),.DeviceID(DeviceID));
+
+AddressCounter AC(.SCL(SCL),.START(START),.STOP(STOP), .LoadAddLSB(LoadAddLSB), .LoadAddMSB(LoadAddMSB), .IncrAddr(IncrAddr), .shiftRegOut(shiftRegOut),
+.AddrRegOut(AddrRegOut));
+
+
+endmodule
