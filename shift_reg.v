@@ -1,5 +1,4 @@
 
-
 module ShiftReg(SCL,SDA,OE_N,shiftIn,shiftOut,reset,START,STOP,LoadShift,LoadRW,LoadDevID,LoadAddLSB,LoadAddMSB,shiftRegOut,shiftRegIn,write,read,SDAOut);
 
 
@@ -29,7 +28,7 @@ always @(posedge START)
 
 
 always @(negedge SCL)
-begin
+#1begin
 //for(i=0;i<DELAY;)i = i + 1;
 if(reset == 1)
 	begin
@@ -64,7 +63,7 @@ end
 end
 
 always @(posedge OE_N)
-begin
+#1 begin
 	count = 3'b0;
 	shiftReg = shiftRegIn;
 
