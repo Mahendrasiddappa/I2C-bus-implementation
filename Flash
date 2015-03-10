@@ -1,0 +1,98 @@
+`ifndef _MODULE_FLASH_
+`define _MODULE_FLASH_
+module flash(
+_WE,
+_CE,
+_OE,
+addr,
+data,
+data_out
+);
+
+input _WE;
+input _CE;
+input _OE;
+
+input [15:0] addr;
+inout [7:0] data;
+
+wire [7:0] data_in;
+output reg [7:0] data_out;
+reg [7:0] temp_addr,temp_data;
+reg [7:0] memory [255:0];
+
+
+/*initial begin
+	temp_addr[7:0] = 8'h01;
+	temp_data  = 8'h3c; 
+	memory[temp_addr[7:0]] = temp_data;
+
+//	temp_addr[7:0] = 8'h03; 
+//	temp_data  = 8'h1b; 
+//	memory[temp_addr[7:0]] = temp_data;
+
+//	temp_addr[7:0] = 8'h04;
+//	temp_data  = 8'h1c;  
+//	memory[temp_addr[7:0]] = temp_data;
+end
+*/
+
+assign data_in = (!_WE) ? data : 8'bz;
+assign data = (!_OE) ? data_out : 8'bz;
+
+`define S_PRE1		0
+`define S_PRE2		1
+`define S_PRER3		2
+`define S_PREW3		3
+`define S_PREE3		4
+`define S_PREW4		5
+`define S_PREE4		6
+`define S_PREE5		7
+`define S_PREW5		8
+`define S_PREW6		9
+
+reg [3:0] lstate;
+integer i;
+
+initial
+	data_out <= 0;
+
+always @ (posedge _WE) begin
+	if (lstate == `S_PREW4 && data == 8'hD0)
+		lstate <= `S_PREW5;
+	else if (lstate == `S_PREW4 && data == 8'hE0)
+		lstate <= `S_PREW6;
+	else if (lstate == `S_PREW4) begin
+		memory[addr[7:0]] <= data;
+		$display("---addr=%x---data-%x---", addr[7:0], data);
+	end else if (addr == 16'hAAAA && data == 8'h55 && lstate == `S_PRE1)
+		lstate <= `S_PRE2;
+	else if (addr == 16'h5555 && data == 8'h00 && lstate == `S_PRE2)
+		lstate <= `S_PRER3;
+	else if (addr == 16'h5555 && data == 8'hB0 && lstate == `S_PRE2)
+		lstate <= `S_PREW3;
+	else if (addr == 16'h5555 && data == 8'h50 && lstate == `S_PRE2)
+		lstate <= `S_PREE3;
+	else if (data == 8'hC0 && lstate == `S_PREW3)
+		lstate <= `S_PREW4;
+	else if (addr == 16'h5555 && data == 8'hAA && lstate == `S_PREE3)
+		lstate <= `S_PREE4;
+	else if (addr == 16'hAAAA && data == 8'h55 && lstate == `S_PREE4)
+		lstate <= `S_PREE5;
+	else if (addr == 16'h5555 && data == 8'hAA)
+		lstate <= `S_PRE1;
+	else if (addr == 0 && data == 8'h70 && lstate == `S_PREE5) begin
+		for (i = 0; i < 256; i = i + 1)
+			memory[i] <= 8'hxx;
+		$display("---block 0 erased---");
+	end
+end
+
+always @ (posedge _OE) begin
+	if (lstate == `S_PRER3) begin
+		#1 data_out <= memory[addr[7:0]];
+		$display("---addr=%x---rdata-%x---", addr[7:0], memory[addr[7:0]]);
+	end
+end
+endmodule
+`endif
